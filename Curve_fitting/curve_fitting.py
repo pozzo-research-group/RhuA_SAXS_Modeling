@@ -3,7 +3,9 @@ import pandas as pd
 import sys
 import os
 sys.path.append('../')
-from genetic_algorithm import GA_functions as GA
+from . import GA_functions as GA
+import scipy
+from scipy import integrate
 
 
 def convert_data(data, model):
@@ -25,21 +27,27 @@ def convert_data(data, model):
     new_model_data = np.hstack((q, I))
     return new_model_data
 
-def evaluate_obj_func(weights, models, exp_data): #This will be our objective function 
+
+def normalize_by_invariant(data):
+    data[:,1] = data[:,1]/invariant(data)
+    return data
+
+
+def evaluate_obj_func(q, weights, models, exp_data): #This will be our objective function 
     models_copy = models.copy()
     for i in range(len(weights)-1):
         models_copy[:,i] = weights[i]*models[:,i]
     model_avg = np.mean(models_copy, axis=1)*weights[-1] #*1e-8
     #Normalize
-    #model_avg = model_avg/model_avg[0]
-    #exp_data = exp_data/exp_data[0]    
+    #model_avg = normalize_by_invariant(np.hstack((q.reshape(-1,1), model_avg.reshape(-1,1))))
+    #exp_data = normalize_by_invariant(np.hstack((q.reshape(-1,1), exp_data.reshape(-1,1))))    
     # Get error
     error = np.mean(np.abs(np.log10(exp_data) - np.log10(model_avg+1e-20)))
     return -error, model_avg
 
-def evaluate_obj_func_loop(x, models, exp_data):
+def evaluate_obj_func_loop(q, x, models, exp_data):
     for i in range(x.shape[0]): # This is a loop that runs the test function for each row of an array
-        y_row, _ = evaluate_obj_func(x[i,:], models, exp_data)
+        y_row, _ = evaluate_obj_func(q, x[i,:], models, exp_data)
         if i == 0:
             y = y_row
         else:
@@ -61,12 +69,12 @@ def invariant(data):
     invariant = scipy.integrate.simps(q**2*I, q)
     return invariant
 
-def run_optimization(exp_data, models, batch_size, mutation_rate, iterations):
+def run_optimization(q, exp_data, models, batch_size, mutation_rate, iterations):
     x = np.random.rand(batch_size, models.shape[1]+1)
-    y = evaluate_obj_func_loop(x, models, exp_data)
+    y = evaluate_obj_func_loop(q, x, models, exp_data)
     alg = GA.genetic_algorithm(batch_size, mutation_rate)
     for i in range(iterations):
         x = alg.run(x,y)
-        y = evaluate_obj_func_loop(x, models, exp_data)
+        y = evaluate_obj_func_loop(q, x, models, exp_data)
     return alg.best_solution()
         
