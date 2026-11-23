@@ -1,3 +1,5 @@
+> **Archived.** This repository is read-only and no longer maintained. Its SAXS curve-fitting code and RhuA data are maintained in [MC-DFM](https://github.com/pozzo-research-group/MC-DFM).
+
 # RhuA_SAXS_Modeling
 
 The repository contains code to fit experimental SAXS data of a polydisperse mixture of tube-like protein assemblies of different diameters. It is known that the RhuA protein assembles into tube-like structures based on microscpy images. The objective of this repository is to determine the distribution of tube diameter sizes in the sample from its experimental SAXS curve. The method to do this can be summaries in the following steps:
